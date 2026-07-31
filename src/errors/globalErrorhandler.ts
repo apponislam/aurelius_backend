@@ -39,6 +39,24 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next): void => {
         statusCode = simplifiedError?.statusCode;
         message = simplifiedError?.message;
         errorSources = simplifiedError?.errorSources;
+    } else if (err?.name === "JsonWebTokenError") {
+        statusCode = 401;
+        message = "Invalid token";
+        errorSources = [
+            {
+                path: "",
+                message: err.message,
+            },
+        ];
+    } else if (err?.name === "TokenExpiredError") {
+        statusCode = 401;
+        message = "Token has expired";
+        errorSources = [
+            {
+                path: "",
+                message: err.message,
+            },
+        ];
     } else if (err instanceof ApiError) {
         statusCode = err?.statusCode;
         message = err.message;
@@ -67,3 +85,4 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next): void => {
 };
 
 export default globalErrorHandler;
+
