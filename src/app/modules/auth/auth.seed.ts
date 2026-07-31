@@ -4,6 +4,11 @@ import config from "../../config";
 
 export const seedAdmin = async () => {
     try {
+        if (!config.initialAdminName || !config.initialAdminEmail || !config.initialAdminPassword || !config.initialAdminPhone) {
+            console.log("⚠️ Initial admin configuration missing, skipping seeding.");
+            return;
+        }
+
         const adminExists = await UserModel.findOne({
             role: "ADMIN",
         });
