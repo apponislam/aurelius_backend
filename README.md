@@ -1,6 +1,6 @@
-# VIBEZ Backend API
+# Aurelius Backend API
 
-Vibez Backend is a robust, modular, and high-performance backend application built with **Node.js**, **Express**, and **TypeScript**. It serves as the core API service for the VIBEZ application, supporting role-based access control, restaurant management, table reservations, promotional deals, multi-gateway payments (Stripe & MyFatoorah), real-time communications via Socket.io, and more.
+Aurelius Backend is a secure, modular, and high-performance authentication and user management service built with **Node.js**, **Express**, and **TypeScript**. It serves as the core identity and access management layer of the Aurelius platform.
 
 ---
 
@@ -9,55 +9,35 @@ Vibez Backend is a robust, modular, and high-performance backend application bui
 - **Runtime & Language**: Node.js, TypeScript (ts-node-dev for development, tsc for compilation)
 - **Framework**: Express.js
 - **Database**: MongoDB (Object modeling via Mongoose)
-- **Authentication**: JSON Web Tokens (JWT), Bcrypt hashing
-- **Payments**: Stripe & MyFatoorah
+- **Authentication & Security**: JSON Web Tokens (JWT), Bcrypt hashing, Route guarding
 - **File Processing**: Multer (file uploads) & Sharp (image optimization/resizing)
-- **Emailing**: Nodemailer (SMTP/Gmail integrations)
-- **Validation**: Zod (schema validations)
-- **Notifications & Push**: Firebase Cloud Messaging (FCM via firebase-admin)
-- **Real-Time & Background**: Socket.io (real-time communication), Node-Cron (scheduled cron tasks), BullMQ & ioredis (background queue processing)
+- **Emailing**: Nodemailer (Verification & OTP delivery)
+- **Validation**: Zod (strict schema validation)
 
 ---
 
 ## 📁 Project Structure
 
-The codebase is organized following a **Modular Pattern**, where each feature is self-contained with its route, controller, service, model, and interface.
+The codebase is structured following a **Modular Design Pattern**, ensuring that the authentication and user domain is self-contained.
 
 ```text
-vibez_backend/
+aurelius_backend/
 ├── src/
 │   ├── app/
+│   │   ├── config/                   # Global configuration & Redis settings
+│   │   ├── middlewares/              # Express middlewares (auth, upload, validation)
 │   │   ├── modules/                  # Modular domain-driven folders
-│   │   │   ├── auth/                 # Users & Authentication
-│   │   │   ├── commission/           # Referral commission logic
-│   │   │   ├── coupon/               # Coupon management
-│   │   │   ├── deal/                 # Promotional Deals
-│   │   │   ├── faq/                  # Frequently Asked Questions
-│   │   │   ├── favorite/             # User Favorites
-│   │   │   ├── notification/         # FCM Push Notifications
-│   │   │   ├── promocodes/           # Coupon & Promo Codes
-│   │   │   ├── public/               # Public assets / endpoints
-│   │   │   ├── reservation/          # Restaurant table bookings
-│   │   │   ├── restaurant/           # Restaurant profiles & menus
-│   │   │   ├── review/               # Customer feedback & ratings
-│   │   │   ├── saved-deal/           # Saved/Bookmarked deals
-│   │   │   ├── settings/             # System settings & configuration
-│   │   │   ├── shorts/               # Short video reels/clips
-│   │   │   ├── stripe/               # Stripe integration & webhooks
-│   │   │   ├── subscription/         # Platform subscription tiers
-│   │   │   ├── user/                 # Admin User Management
-│   │   │   ├── usersubscription/     # Subscribed user plans
-│   │   │   └── withdraw/             # Commission payouts
+│   │   │   └── auth/                 # Authentication & User Management
 │   │   └── routes/                   # API Route Registry
 │   ├── errors/                       # Global error handling utilities
-│   ├── utils/                        # Helper functions (catchAsync, sendResponse, etc.)
-│   ├── app.ts                        # Express App definition & middlewares
+│   ├── utils/                        # Shared utility helpers (JWT, email templates, responses)
+│   ├── app.ts                        # Express App initialization
 │   └── server.ts                     # Database connection & Server listener
-├── public/                           # Static assets
-├── uploads/                          # User-uploaded files
-├── .env.example                      # Template for environment variables
-├── package.json                      # Project dependencies & scripts
-└── tsconfig.json                     # TypeScript compiler configuration
+├── public/                           # Static assets & public files
+├── uploads/                          # User-uploaded profile images
+├── .env.example                      # Environment variables template
+├── package.json                      # NPM dependencies & scripts
+└── tsconfig.json                     # TypeScript configuration
 ```
 
 ---
@@ -66,18 +46,17 @@ vibez_backend/
 
 ### Prerequisites
 
-Ensure you have the following installed on your machine:
+Ensure you have the following installed on your local machine:
 - **Node.js** (v18+ recommended)
 - **npm** or **yarn**
-- **MongoDB** (local instance or MongoDB Atlas cluster URI)
-- **Redis** (optional, required if running background workers/BullMQ)
+- **MongoDB** (local database or MongoDB Atlas connection URI)
 
 ### Installation
 
 1. Clone the repository and navigate to the project directory:
    ```bash
    git clone <repository-url>
-   cd vibez_backend
+   cd aurelius_backend
    ```
 
 2. Install the dependencies:
@@ -100,7 +79,7 @@ Update the following keys in your `.env` file:
 | Variable | Description | Example Value |
 | :--- | :--- | :--- |
 | `NODE_ENV` | Running Environment | `development` / `production` |
-| `PORT` | Listening Port | `5000` |
+| `PORT` | Listening Port | `5057` |
 | `MONGODB_URL` | MongoDB Connection URI | `mongodb+srv://...` |
 | `BCRYPT_SALT_ROUNDS` | Cost factor for password hashing | `12` |
 | `CLIENT_URL` | Frontend client application URL | `http://localhost:3000` |
@@ -113,9 +92,8 @@ Update the following keys in your `.env` file:
 | `SMTP_PORT` | Email SMTP Server Port | `587` |
 | `SMTP_USER` | Sender email address | `example@gmail.com` |
 | `SMTP_PASS` | App password for Gmail/SMTP | `your_email_app_password` |
-| `SUPERADMINEMAIL` | Default Super Admin email address | `admin@vibez.com` |
+| `SUPERADMINEMAIL` | Default Super Admin email address | `admin@aurelius.com` |
 | `SUPERADMINPASSWORD` | Default Super Admin password | `super_admin_pass` |
-| `MYFATOORAH_API_KEY` | MyFatoorah Payment Gateway Token | `myfatoorah_token` |
 
 ---
 
@@ -126,10 +104,8 @@ Update the following keys in your `.env` file:
 | `npm run dev` | Runs the server in development mode with auto-reload (using `ts-node-dev`) |
 | `npm run build` | Compiles the TypeScript code to standard JavaScript in the `dist/` directory |
 | `npm run start` | Runs the compiled JavaScript server in production mode |
-| `npm run lint` | Lints the codebase using ESLint rules |
+| `npm run lint` | Lints the codebase using ESLint |
 | `npm run lint:fix` | Automatically resolves autofixable linting issues |
-| `npm run worker:dev` | Runs the background worker queue in development mode |
-| `npm run worker` | Runs the compiled worker script in production mode |
 
 ---
 
@@ -137,61 +113,35 @@ Update the following keys in your `.env` file:
 
 All API routes are prefixed with `/api/v1`.
 
-### 🔑 Authentication (`/api/v1/auth`)
-- `POST /auth/register` - Register a new user
-- `POST /auth/login` - Authenticate user & get tokens
-- `POST /auth/refresh-token` - Retrieve a new access token using refresh token
-- `POST /auth/change-password` - Update account password (authenticated)
-- `POST /auth/forgot-password` - Request a password reset OTP
-- `POST /auth/verify-otp` - Verify the password reset OTP
-- `POST /auth/reset-password` - Reset password with verified token
+### 🔑 Authentication & User Management (`/api/v1/auth`)
 
-### 🍕 Restaurants (`/api/v1/restaurants`)
-- `GET /restaurants` - Retrieve approved restaurant list (supports search, geolocation, filters)
-- `GET /restaurants/admin/all` - Retrieve all restaurants (Admin only, includes unapproved ones)
-- `POST /restaurants` - Create restaurant profile (Admin/Owner; auto-approves if allowed by settings)
-- `GET /restaurants/:id` - Fetch details of a specific restaurant
-- `PATCH /restaurants/:id` - Update restaurant info
-- `DELETE /restaurants/:id` - Soft-delete restaurant (Admin/Owner)
-- `PATCH /restaurants/:id/approve` - Approve a restaurant profile (Admin only)
-- `PATCH /restaurants/:id/revoke-approval` - Revoke restaurant approval (Admin only)
+#### Public Routes:
+* `POST /auth/register` - Register a new user with optional profile image upload
+* `POST /auth/login` - Authenticate user & retrieve access and refresh tokens
+* `GET /auth/verify-email` - Verify user email address
+* `POST /auth/resend-verification` - Resend verification email
+* `POST /auth/refresh-token` - Retrieve a new access token using a refresh token
+* `POST /auth/forgot-password` - Request a password reset OTP
+* `POST /auth/verify-otp` - Verify the password reset OTP
+* `POST /auth/resend-otp` - Resend a password reset OTP
+* `POST /auth/reset-password` - Reset password with a verified token
+* `GET /auth/verify-new-email` - Verify a new email address update
 
-### 👥 User & Staff Administration (`/api/v1/users`)
-- `GET /users` - Paginated user listing with support for search and filtering by role/influencer/active status (Admin only)
-- `GET /users/stats` - Fetch platform usage statistics: total, regular, influencer, and premium users (Admin only)
-- `GET /users/:id/activity` - Detailed chronological view of referrals, subscriptions, commissions, and withdrawals (Admin only)
-- `PATCH /users/:id/edit` - Modify user's influencer status and customized commission terms (Admin only)
-- `PATCH /users/:id/toggle-status` - Toggle a user's active/banned status (Admin only)
-- `POST /users/staff` - Create a new staff account (Manager/Cashier/Waiter) with optional profile image upload (Owner/Admin)
-- `GET /users/staff` - Paginated listing of all staff members registered under the owner's restaurant (Owner/Admin)
-- `PATCH /users/staff/:staffId/toggle-login` - Enable or disable login permission for a specific staff member (Owner/Admin)
-- `PATCH /users/staff/toggle-all-login` - Enable or disable login permission for all staff members of the restaurant simultaneously (Owner/Admin)
+#### Protected Routes:
+* `GET /auth/me` - Get profile details of the currently authenticated user
+* `POST /auth/logout` - Clear user session and logout
+* `PATCH /auth/profile` - Update user profile information (including image upload)
+* `PATCH /auth/location` - Update coordinates/location data
+* `POST /auth/fcm-token` - Register or update a Firebase Cloud Messaging (FCM) token for push notifications
+* `POST /auth/change-password` - Change the password of the logged-in user
+* `POST /auth/update-email` - Request to update the account email address
+* `POST /auth/resend-email-update` - Resend verification email for an email update
 
-### 🏷️ Deals & Promotions (`/api/v1/deals`)
-- `GET /deals` - Retrieve all active deals (pass `?restaurantId=ID` to filter by restaurant)
-- `GET /deals/:dealId` - Get individual deal information
-- `POST /deals` - Create a new deal (Admin/Owner)
-- `PATCH /deals/:dealId` - Update deal details
-- `PATCH /deals/:dealId/toggle-status` - Toggle active/inactive status (Admin)
-- `DELETE /deals/:dealId` - Remove deal
-
-### 📅 Reservations (`/api/v1/reservations`)
-- `POST /reservations` - Book a table
-- `GET /reservations` - Get booking list (filters apply based on roles)
-- `PATCH /reservations/:id/status` - Update reservation status (Pending/Confirmed/Cancelled)
-
-### 💳 Subscriptions & Payments (`/api/v1/subscriptions`)
-- `GET /subscriptions` - Get active subscription tiers
-- `POST /subscriptions/checkout` - Create payment gateway session
-- `POST /subscription/webhook` - Stripe payment webhooks receiver (handles updates)
-
-### 🎥 Shorts (`/api/v1/shorts`)
-- `GET /shorts` - Retrieve video feeds
-- `POST /shorts` - Upload a new short video clip
+#### Admin-Only Routes:
+* `POST /auth/set-password/:userId` - Force-set a password for a specific user
 
 ---
 
 ## 🛡️ License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
