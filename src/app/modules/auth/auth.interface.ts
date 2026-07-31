@@ -50,9 +50,6 @@ export interface User {
     emailVerificationToken?: string;
     emailVerificationExpiry?: Date;
 
-    // Staff specific settings
-    enableStaffLogin?: boolean;
-
     createdAt: Date;
     updatedAt: Date;
 }

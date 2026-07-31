@@ -11,21 +11,26 @@ export const seedAdmin = async () => {
         if (!adminExists) {
             console.log("📝 No admin found, creating one...");
 
-            const hashedPassword = await bcrypt.hash(config.superAdminPassword as string, Number(config.bcrypt_salt_rounds));
+            const name = config.initialAdminName;
+            const password = config.initialAdminPassword;
+            const email = config.initialAdminEmail;
+            const phone = config.initialAdminPhone;
+
+            const hashedPassword = await bcrypt.hash(password as string, Number(config.bcrypt_salt_rounds));
 
             const admin = {
-                name: "Admin",
-                email: config.superAdminEmail,
+                name: name,
+                email: email,
                 password: hashedPassword,
                 role: "ADMIN",
-                phone: "0000000000",
+                phone: phone,
                 isActive: true,
                 isEmailVerified: true,
             };
 
             await UserModel.create(admin as any);
 
-            console.log("✅ Admin created:", config.superAdminEmail);
+            console.log("✅ Admin created:", email);
         } else {
             console.log("✅ Admin already exists, skipping creation");
         }

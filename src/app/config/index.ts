@@ -34,7 +34,9 @@ export default {
         webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
     },
 
-    superAdminPassword: process.env.SUPERADMINPASSWORD,
-    superAdminEmail: process.env.SUPERADMINEMAIL,
+    initialAdminName: process.env.INITIAL_ADMIN_NAME,
+    initialAdminEmail: process.env.INITIAL_ADMIN_EMAIL,
+    initialAdminPassword: process.env.INITIAL_ADMIN_PASSWORD,
+    initialAdminPhone: process.env.INITIAL_ADMIN_PHONE,
     maps_api_key: process.env.MAPS_API_KEY,
 };

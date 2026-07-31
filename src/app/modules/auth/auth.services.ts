@@ -92,11 +92,6 @@ const loginUser = async (data: { email: string; password: string }) => {
         throw new ApiError(httpStatus.FORBIDDEN, "Your account has been deactivated. Please contact support for assistance.");
     }
 
-    // Check if staff login is enabled
-    if (user.role === "STAFF" && user.enableStaffLogin === false) {
-        throw new ApiError(httpStatus.FORBIDDEN, "Staff login is disabled by the restaurant owner. Please contact your manager.");
-    }
-
     // Update last login
     await UserModel.updateOne({ _id: user._id }, { $set: { lastLogin: new Date() } });
 
